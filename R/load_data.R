@@ -61,7 +61,7 @@ read_spankki <- function(filename) {
            date_reported = day_month_year2date(date_reported),
            date = day_month_year2date(date_paid),
            is_income = amount > 0,
-           is_internal_payment = payer %in% c("RAFAEL SAVVIDES", "SAVVIDES RAFAEL") & receiver %in% c("RAFAEL SAVVIDES", "SAVVIDES RAFAEL")) %>%
+           is_internal_payment = str_to_lower(payer) %in% c("rafael savvides", "savvides rafael") & str_to_lower(receiver) %in% c("rafael savvides", "savvides rafael")) %>%
     dplyr::select(date, amount, type, payer, receiver, message, is_income, is_internal_payment)
 }
 

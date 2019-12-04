@@ -2,78 +2,118 @@ library(shiny)
 
 source("R/load_data.R")
 source("R/plots.R")
+source("R/tables.R")
 data = read_spankki_all()
 categories = read_categories()
 data = add_category_column(data, categories)
+
 time_periods = expand.grid(mon = month.abb[unique(month(data$date))], yr = unique(year(data$date))) %>%
   mutate(mon_yr = paste(mon, yr)) %>%
   pull(mon_yr)
 
 ui <- fluidPage(
-  verticalLayout(
-    titlePanel("Finances"),
-    plotOutput("plot1"),
-    fluidRow(
-      column(width=4,
-             dateInput('date_start',
-                       label = 'Start: yyyy-mm-dd',
-                       value = max(data$date) - 7
-             )),
-      column(width=4,
-             dateInput('date_end',
-                       label = 'End: yyyy-mm-dd',
-                       value = max(data$date)
-             )),
-      column(width=4,
-             selectInput('date_period', "Select time period",
-                         choices = time_periods #TODO Make this change date_start and date_end. https://stackoverflow.com/questions/38884084/shiny-r-reset-other-input-values-when-selectinput-value-changes
-             )),
-    ),
-    navlistPanel(
-      "Extra",
-      tabPanel("Compare categories",
-               checkboxInput("show_categ", "Show categories", FALSE),
-               checkboxGroupInput("categ",
-                                  label = "Choose categories:",
-                                  choiceNames = list("Supermarket", "Food", "Out", "Service", "Product", "Other", "Rent", "None"),
-                                  choiceValues = list("Supermarket", "Food", "Out", "Service", "Product", "Other", "Rent", ""),
-                                  selected = list("Supermarket", "Food", "Out", "Service", "Product", "Other", "Rent", "None")
-               )
-      ),
-      tabPanel("Aggregate",
-               fluidRow(selectInput("aggregate", "Choose aggregation", choices = list("Year", "Month")),
-                        selectInput("aggregate2", "Choose aggregation2", choices = list("Year", "Month")))
-      ),
-
-      tabPanel("Compare years, months",
-               checkboxGroupInput("compare_years", "Choose year or month",
-                                  choices = list("Year", "Month", "Week"))
-      ),
-
-      tabPanel("Show top10 purchases",
-              tableOutput("table1")
-      )
-    )
+  navbarPage("Finances",
+             tabPanel("Daily",
+                      verticalLayout(
+                        plotOutput("plot_ts"),
+                        fluidRow(
+                          column(width=4,
+                                 checkboxInput("show_categ", "Show categories", FALSE),
+                                 checkboxGroupInput("categ", inline=T,
+                                                    label = "Choose categories:",
+                                                    choiceNames = list("Supermarket", "Food", "Out", "Service", "Product", "Other", "Rent", "None"),
+                                                    choiceValues = list("Supermarket", "Food", "Out", "Service", "Product", "Other", "Rent", "None"),
+                                                    selected = list("Supermarket", "Food", "Out", "Service", "Product", "Other", "Rent", "None")
+                                 )
+                          ),
+                          column(width=2,
+                                 dateInput('date_start',
+                                           label = 'From',
+                                           value = max(data$date) - 7
+                                 )),
+                          column(width=2,
+                                 dateInput('date_end',
+                                           label = 'To',
+                                           value = max(data$date)
+                                 ))
+                        ),
+                        navlistPanel(
+                          "",
+                          tabPanel("Show top purchases",
+                                   tableOutput("table_top"),
+                                   sliderInput("n_top", "n", min=1, max=100, value=10)
+                          )
+                        )
+                      )
+             ),
+             tabPanel("Monthly",
+                      verticalLayout(
+                        plotOutput("plot_monthly"),
+                        fixedRow(
+                          column(width=12,
+                                 checkboxInput("show_categ_monthly", "Show categories", FALSE),
+                                 checkboxGroupInput("categ_monthly", inline=T,
+                                                    label = "Choose categories:",
+                                                    choiceNames = list("Supermarket", "Food", "Out", "Service", "Product", "Other", "Rent", "None"),
+                                                    choiceValues = list("Supermarket", "Food", "Out", "Service", "Product", "Other", "Rent", "None"),
+                                                    selected = list("Supermarket", "Food", "Out", "Service", "Product", "Other", "Rent", "None")
+                                 )
+                          ),
+                          tableOutput("table_monthly")
+                        )
+                      )
+             ),
+             tabPanel("Weekly",
+                      verticalLayout(
+                        plotOutput("plot_weekly"),
+                        fluidRow(
+                          column(width=12,
+                                 checkboxInput("show_categ_weekly", "Show categories", FALSE),
+                                 checkboxGroupInput("categ_weekly", inline=T,
+                                                    label = "Choose categories:",
+                                                    choiceNames = list("Supermarket", "Food", "Out", "Service", "Product", "Other", "Rent", "None"),
+                                                    choiceValues = list("Supermarket", "Food", "Out", "Service", "Product", "Other", "Rent", "None"),
+                                                    selected = list("Supermarket", "Food", "Out", "Service", "Product", "Other", "Rent", "None")
+                                 )
+                          )
+                        )
+                      )
+             )
   )
 )
 
+
 server <- function(input, output, session) {
-  output$plot1 <- renderPlot({
+  output$plot_ts <- renderPlot({
     data %>%
       dplyr::filter(between(date, input$date_start, input$date_end)) %>%
       filter(category %in% input$categ) %>%
       plot_daily_expenses(show_categories = input$show_categ)
   })
 
-  output$table1 <- renderTable({
-    data %>%
-      filter_expenses %>%
-      select(date, amount, receiver, message, category) %>%
-      dplyr::filter(between(date, input$date_start, input$date_end)) %>%
-      top_n(n=10, amount) %>%
-      arrange(-amount) %>%
-      mutate(date = format(date,'%Y-%m-%d'))
+  output$table_top <- renderTable({
+    table_top_purchases(data, input$date_start, input$date_end, input$categ, input$n_top)
   })
+
+  output$plot_monthly <- renderPlot({
+    data %>%
+      filter(category %in% input$categ_monthly) %>%
+      plot_month_year()
+  })
+
+  output$table_monthly <- renderTable({
+    data %>%
+      filter(category %in% input$categ_monthly) %>%
+      table_aggregate(group_categ = input$show_categ_monthly)
+  })
+
+  output$plot_weekly <- renderPlot({
+    data %>%
+      filter(category %in% input$categ_weekly) %>%
+      plot_weekdays
+  })
+
 }
+
 
 shinyApp(ui, server)
