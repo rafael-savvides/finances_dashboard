@@ -3,7 +3,7 @@ library(shiny)
 source("R/load_data.R")
 source("R/plots.R")
 source("R/tables.R")
-data = read_spankki_all()
+data = read_all()
 categories = read_categories()
 data = add_category_column(data, categories)
 
@@ -46,7 +46,7 @@ ui <- fluidPage(
                           tabPanel("Search",
                                    fluidRow(
                                      textInput("text_search", "", placeholder = "Enter a search term"),
-                                     textOutput("text_search_result")
+                                     h3(textOutput("text_search_result"))
                                      ),
                                    tableOutput("table_search")
                           )
@@ -99,11 +99,15 @@ server <- function(input, output, session) {
   })
 
   output$table_top <- renderTable({
-    table_top_purchases(data, input$date_start, input$date_end, input$categ, input$n_top)
+    table_top_purchases(data, input$date_start, input$date_end, input$categ, n_top = input$n_top)
   })
 
   output$table_search <- renderTable({
-    table_search(data, input$date_start, input$date_end, input$categ, input$text_search)
+    table_search(search_term = input$text_search,
+                 data = data,
+                 date_start = input$date_start,
+                 date_end = input$date_end,
+                 categ = input$categ)
   })
 
   output$plot_monthly <- renderPlot({
@@ -124,12 +128,16 @@ server <- function(input, output, session) {
       plot_weekdays
   })
 
-  output$text_search_result <- renderPrint({
-    res = table_search(data, input$date_start, input$date_end, input$categ, input$text_search) %>%
+  output$text_search_result <- renderText({
+    res = table_search(search_term = input$text_search,
+                       data = data,
+                       date_start = input$date_start,
+                       date_end = input$date_end,
+                       categ = input$categ) %>%
       summarise(total = sum(amount)) %>%
       pull(total)
 
-    print(paste0("Total spending: ", res))
+    paste0("Total spending: ", res)
   })
 }
 
