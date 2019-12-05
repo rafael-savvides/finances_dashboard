@@ -1,20 +1,34 @@
-#' Table of top n purchases
+#' Table of expenses
 #'
-#' Returns a data frame of top purchases in a given time frame and in given categories
+#' For a given time period (date_start to date_end) and for given categories
 #'
 #' @param data
-#' @param date_start date
-#' @param date_end date
-#' @param categ character vector
-#' @param n_top integer
+#' @param date_start
+#' @param date_end
+#' @param categ
 #'
-#' @return data frame
-table_top_purchases <- function(data, date_start, date_end, categ, n_top) {
+#' @return
+#' @export
+#'
+#' @examples
+table_expenses <- function(data, date_start, date_end, categ) {
   data %>%
     filter_expenses %>%
     select(date, amount, receiver, message, category) %>%
     filter(between(date, date_start, date_end)) %>%
-    filter(category %in% categ) %>%
+    filter(category %in% categ)
+}
+
+#' Table of top n purchases
+#'
+#' Returns a data frame of top purchases in a given time frame and in given categories
+#'
+#' @param n_top integer
+#' @param ... see [table_expenses]
+#' @return data frame
+#' @md
+table_top_purchases <- function(..., n_top) {
+  table_expenses(...) %>%
     top_n(n = n_top, amount) %>%
     arrange(-amount) %>%
     mutate(date = format(date,'%Y-%m-%d'))
@@ -54,12 +68,24 @@ table_aggregate <- function(data, group_categ = F) {
   }
 }
 
-table_search <- function(data, date_start, date_end, categ, search_term) {
-  data %>%
-    filter_expenses %>%
-    select(date, amount, receiver, message, category) %>%
-    filter(between(date, date_start, date_end)) %>%
-    filter(category %in% categ) %>%
-    filter(str_detect(str_to_lower(receiver), str_to_lower(search_term)) | str_detect(str_to_lower(message), str_to_lower(search_term))) %>%
+#' Search results
+#'
+#' @param search_term
+#' @param ... see [table_expenses]
+#'
+#' @return
+#' @export
+#'
+#' @md
+table_search <- function(..., search_term) {
+  parse_search_term <- function(s) {
+    s = unlist(str_split(s, " ?\\| ?"))
+    if (length(s) > 1)
+      s = s[s != ""]
+    s
+  }
+  search_term = parse_search_term(search_term)
+  table_expenses(...) %>%
+    filter(str_detect_vec(str_to_lower(receiver), str_to_lower(search_term)) | str_detect_vec(str_to_lower(message), str_to_lower(search_term))) %>%
     mutate(date = format(date,'%Y-%m-%d'))
 }
