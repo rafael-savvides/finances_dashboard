@@ -50,17 +50,6 @@ read_yes_no_input = function(prompt) {
   input %in% options$yes
 }
 
-#' Wrapper for str_detect
-#' Returns logical vector of elements of s that contain an element from patterns.
-#' @param patterns char vector. patterns to be found in s
-#' @param s char vector
-#' @return logical vector length(s). TRUE if any element of patterns is detected in an element of s
-str_detect_vec <- function(patterns, s) {
-  patterns_collapsed <- paste(patterns, collapse = "|")
-  i <- str_detect(s, patterns_collapsed)
-  if (length(patterns) == 0) i <- rep(FALSE, times=length(s))
-  i
-}
 
 #' Get new labels
 #' Get the labels_in_data that are not in categories.
@@ -68,7 +57,7 @@ str_detect_vec <- function(patterns, s) {
 #' @param categories list of vectors
 #' @return character vector
 get_new_labels = function(labels_in_data, categories) {
-  labels_in_data[!str_detect_vec(patterns = unlist(categories), s = labels_in_data)]
+  labels_in_data[!str_detect_vec(s = labels_in_data, patterns = unlist(categories))]
 }
 
 #' Append new labels
