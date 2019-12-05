@@ -53,3 +53,13 @@ table_aggregate <- function(data, group_categ = F) {
     dat
   }
 }
+
+table_search <- function(data, date_start, date_end, categ, search_term) {
+  data %>%
+    filter_expenses %>%
+    select(date, amount, receiver, message, category) %>%
+    filter(between(date, date_start, date_end)) %>%
+    filter(category %in% categ) %>%
+    filter(str_detect(str_to_lower(receiver), str_to_lower(search_term)) | str_detect(str_to_lower(message), str_to_lower(search_term))) %>%
+    mutate(date = format(date,'%Y-%m-%d'))
+}

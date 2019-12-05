@@ -40,8 +40,15 @@ ui <- fluidPage(
                         navlistPanel(
                           "",
                           tabPanel("Show top purchases",
-                                   tableOutput("table_top"),
-                                   sliderInput("n_top", "n", min=1, max=100, value=10)
+                                   sliderInput("n_top", "n", min=1, max=100, value=10),
+                                   tableOutput("table_top")
+                          ),
+                          tabPanel("Search",
+                                   fluidRow(
+                                     textInput("text_search", "", placeholder = "Enter a search term"),
+                                     textOutput("text_search_result")
+                                     ),
+                                   tableOutput("table_search")
                           )
                         )
                       )
@@ -95,6 +102,10 @@ server <- function(input, output, session) {
     table_top_purchases(data, input$date_start, input$date_end, input$categ, input$n_top)
   })
 
+  output$table_search <- renderTable({
+    table_search(data, input$date_start, input$date_end, input$categ, input$text_search)
+  })
+
   output$plot_monthly <- renderPlot({
     data %>%
       filter(category %in% input$categ_monthly) %>%
@@ -113,6 +124,13 @@ server <- function(input, output, session) {
       plot_weekdays
   })
 
+  output$text_search_result <- renderPrint({
+    res = table_search(data, input$date_start, input$date_end, input$categ, input$text_search) %>%
+      summarise(total = sum(amount)) %>%
+      pull(total)
+
+    print(paste0("Total spending: ", res))
+  })
 }
 
 
