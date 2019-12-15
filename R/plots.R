@@ -1,6 +1,11 @@
 require(ggplot2)
 theme_set(theme_light())
 
+clr_categ = setNames(RColorBrewer::brewer.pal(n = min(9, length(categories)), "Set1"), names(categories))
+clr_month = setNames(colorRampPalette(RColorBrewer::brewer.pal(n = 9, "Blues")[3:9])(12), month.abb)
+clr_year = setNames(colorRampPalette(RColorBrewer::brewer.pal(n = 9, "Blues")[3:9])(10), 2017:2026)
+clr_fill = c(clr_categ, clr_month, clr_year)
+
 #' Template for time series plots
 #'
 #' @param data
@@ -14,6 +19,7 @@ plot_time_series <- function(data) {
     theme(rect = element_blank()) +
     scale_x_date() +
     scale_y_continuous(labels = scales::dollar_format(suffix = "eur", prefix = "")) +
+    scale_fill_manual(values = clr_fill) +
     xlab("") + ylab("")
 }
 
@@ -32,7 +38,7 @@ plot_daily_expenses <- function(data, show_categories = F) {
     filter_expenses %>%
     plot_time_series()
   if (show_categories) {
-    plt + geom_col(aes(date, amount, fill=category))
+    plt + geom_col(aes(date, amount, fill=category), position="dodge")
   } else {
     plt + geom_col(aes(date, amount))
   }
@@ -54,11 +60,11 @@ plot_weekends <- function(data, ...) {
 #' @export
 #'
 #' @examples
-plot_month_year <- function(data) {
+plot_month_year <- function(data, show_categ=F) {
   #TODO replace with table_monthly
-  data %>%
+  plt = data %>%
     filter_expenses %>%
-    group_by(year = year(date), month = month(date)) %>%
+    group_by(year = year(date), month = month(date), category) %>%
     summarise(total = sum(amount)) %>%
     plot_time_series() +
     scale_x_continuous(breaks = 1:12, labels = month.abb) +
@@ -67,6 +73,9 @@ plot_month_year <- function(data) {
           axis.ticks.x = element_blank()) +
     labs(fill = "Year") +
     geom_col(aes(month, total, fill = as.factor(year)), position = "dodge")
+  if (show_categ)
+    plt + facet_wrap(category~.)
+  plt
 }
 
 #' Title
@@ -109,7 +118,7 @@ plot_weekdays <- function(data) {
            weekday = factor(weekday, levels=c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"))) %>%
     plot_time_series() +
     scale_x_discrete() +
-    scale_fill_ordinal(begin = 1, end=0) +
-    geom_col(aes(weekday, total, fill = month)) +
+    #scale_fill_ordinal(begin = 1, end=0) +
+    geom_col(aes(weekday, total, fill = month), position="dodge") +
     facet_wrap(year~., nrow=1)
 }

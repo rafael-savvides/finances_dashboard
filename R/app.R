@@ -1,8 +1,10 @@
 library(shiny)
-
+library(plotly)
+require(shinythemes)
 source("R/load_data.R")
 source("R/plots.R")
 source("R/tables.R")
+source("R/utils.R")
 data = read_all()
 categories = read_categories()
 data = add_category_column(data, categories)
@@ -11,11 +13,12 @@ time_periods = expand.grid(mon = month.abb[unique(month(data$date))], yr = uniqu
   mutate(mon_yr = paste(mon, yr)) %>%
   pull(mon_yr)
 
-ui <- fluidPage(
+ui <- fluidPage(theme = shinytheme("flatly"),
   navbarPage("Finances",
              tabPanel("Daily",
                       verticalLayout(
                         plotOutput("plot_ts"),
+                        hr(),
                         fluidRow(
                           column(width=4,
                                  checkboxInput("show_categ", "Show categories", FALSE),
@@ -37,7 +40,8 @@ ui <- fluidPage(
                                            value = max(data$date)
                                  ))
                         ),
-                        navlistPanel(
+                        hr(),
+                        navlistPanel(widths = c(2, 10),
                           "",
                           tabPanel("Show top purchases",
                                    sliderInput("n_top", "n", min=1, max=100, value=10),
@@ -56,6 +60,7 @@ ui <- fluidPage(
              tabPanel("Monthly",
                       verticalLayout(
                         plotOutput("plot_monthly"),
+                        hr(),
                         fixedRow(
                           column(width=12,
                                  checkboxInput("show_categ_monthly", "Show categories", FALSE),
@@ -66,6 +71,7 @@ ui <- fluidPage(
                                                     selected = list("Supermarket", "Food", "Out", "Service", "Product", "Other", "Rent", "None")
                                  )
                           ),
+                          hr(),
                           tableOutput("table_monthly")
                         )
                       )
@@ -73,6 +79,7 @@ ui <- fluidPage(
              tabPanel("Weekly",
                       verticalLayout(
                         plotOutput("plot_weekly"),
+                        hr(),
                         fluidRow(
                           column(width=12,
                                  checkboxInput("show_categ_weekly", "Show categories", FALSE),
@@ -113,7 +120,7 @@ server <- function(input, output, session) {
   output$plot_monthly <- renderPlot({
     data %>%
       filter(category %in% input$categ_monthly) %>%
-      plot_month_year()
+      plot_month_year(show_categ = input$show_categ_monthly) #TODO Fix this. Faceting to multiple rows doesn't work.
   })
 
   output$table_monthly <- renderTable({
@@ -140,6 +147,5 @@ server <- function(input, output, session) {
     paste0("Total spending: ", res)
   })
 }
-
 
 shinyApp(ui, server)
