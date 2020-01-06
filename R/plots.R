@@ -42,6 +42,7 @@ plot_daily_expenses <- function(data, show_categories = F) {
   } else {
     plt + geom_col(aes(date, amount))
   }
+  plt
   #TODO have consistent colors for categories. Order them according to amount.
 }
 
