@@ -1,7 +1,8 @@
 require(ggplot2)
 theme_set(theme_light())
 
-clr_categ = RColorBrewer::brewer.pal(n = 9, "Set1")
+clr_categ = setNames(RColorBrewer::brewer.pal(n = 9, "Set1"),
+                     c("Supermarket", "Food", "Out", "Service", "Product", "Rent", "None"))
 clr_month = setNames(colorRampPalette(RColorBrewer::brewer.pal(n = 9, "Blues")[3:9])(12), month.abb)
 clr_year = setNames(colorRampPalette(RColorBrewer::brewer.pal(n = 9, "Blues")[3:9])(10), 2017:2026)
 clr_fill = c(clr_categ, clr_month, clr_year)
