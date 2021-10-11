@@ -1,7 +1,6 @@
 require(ggplot2)
 theme_set(theme_light())
 
-# clr_categ = setNames(RColorBrewer::brewer.pal(n = min(9, length(categories)), "Set1"), names(categories))
 clr_categ = RColorBrewer::brewer.pal(n = 9, "Set1")
 clr_month = setNames(colorRampPalette(RColorBrewer::brewer.pal(n = 9, "Blues")[3:9])(12), month.abb)
 clr_year = setNames(colorRampPalette(RColorBrewer::brewer.pal(n = 9, "Blues")[3:9])(10), 2017:2026)
@@ -16,6 +15,7 @@ clr_fill = c(clr_categ, clr_month, clr_year)
 #'
 #' @examples
 gg_time_series <- function(data) {
+  #TODO Change default color to match shiny theme (dark blue instead of grey).
   ggplot(data) +
     theme(rect = element_blank()) +
     scale_x_date() +

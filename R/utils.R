@@ -63,6 +63,7 @@ which_category <- function(s, categories) {
   for (i in seq_along(res)) {
     tmp = names(categories)[vapply(categories, function(vec) any(str_detect(string = s[i], vec)), logical(1))]
     if (length(tmp) < 1) tmp = "None"
+    if (length(tmp) > 1) tmp = tmp[1] #TODO Decide what to happen when more than one category.
     res[i] = tmp
   }
   res

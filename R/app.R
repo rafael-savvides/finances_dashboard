@@ -4,11 +4,12 @@ require(shinythemes)
 source("load_data.R")
 source("tables.R")
 source("utils.R")
-data = read_all(readLines("../data/dir_bank.txt"))
-categories = read_categories("../data/categories.rds")
 source("plots.R")
+data = read_all(readLines("../data/dir_bank.txt"))
+categories = read_categories("../data/categories.rds") #TODO Save as json.
 data = add_category_column(data, categories)
 
+category_names = as.list(c(names(categories), "None"))
 time_periods = expand.grid(
   mon = month.abb[unique(month(data$date))],
   yr = unique(year(data$date))) %>%
@@ -27,9 +28,9 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                                  checkboxGroupInput(
                                    "categ", inline=T,
                                    label = "Choose categories:",
-                                   choiceNames = list("Supermarket", "Food", "Out", "Service", "Product", "Other", "Rent", "None"),
-                                   choiceValues = list("Supermarket", "Food", "Out", "Service", "Product", "Other", "Rent", "None"),
-                                   selected = list("Supermarket", "Food", "Out", "Service", "Product", "Other", "Rent", "None")
+                                   choiceNames = category_names,
+                                   choiceValues = category_names,
+                                   selected = category_names
                                  )
                           ),
                           column(width=2,
@@ -56,9 +57,9 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                                  checkboxInput("show_categ_monthly", "Show categories", FALSE),
                                  checkboxGroupInput("categ_monthly", inline=T,
                                                     label = "Choose categories:",
-                                                    choiceNames = list("Supermarket", "Food", "Out", "Service", "Product", "Other", "Rent", "None"),
-                                                    choiceValues = list("Supermarket", "Food", "Out", "Service", "Product", "Other", "Rent", "None"),
-                                                    selected = list("Supermarket", "Food", "Out", "Service", "Product", "Other", "Rent", "None")
+                                                    choiceNames = category_names,
+                                                    choiceValues = category_names,
+                                                    selected = category_names
                                  )
                           ),
                           hr(),
@@ -96,12 +97,6 @@ server <- function(input, output, session) {
     data %>%
       filter(category %in% input$categ_monthly) %>%
       table_aggregate(group_categ = input$show_categ_monthly)
-  })
-
-  output$plot_weekly <- renderPlot({
-    data %>%
-      filter(category %in% input$categ_weekly) %>%
-      plot_weekdays
   })
 }
 
