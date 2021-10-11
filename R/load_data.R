@@ -1,58 +1,36 @@
-library(tidyverse)
+library(dplyr)
+library(stringr)
+library(purrr)
 library(lubridate)
+source("utils.R")
 
-#' Read all spankki csv files
+#' Read all csv files in a directory
 #'
-#' @param dir_file
+#' @param dir_bank
 #'
 #' @return
 #' @export
 #'
 #' @examples
-read_spankki_all <- function(dir_file = readLines("data/dir_bank.txt")) {
-  file_list = list.files(dir_file, pattern = "spankki.+\\.csv")
-  map_df(file_list, read_data)
-}
-
-#' Title
-#'
-#' @param dir_file
-#'
-#' @return
-#' @export
-#'
-#' @examples
-read_all <- function(dir_file = readLines("data/dir_bank.txt")) {
-  file_list = list.files(dir_file)
+read_all <- function(dir_bank) {
+  stopifnot(dir.exists(dir_bank))
+  read_data <- function(filename) {
+    if (grepl("spankki", filename)) {
+      read_spankki(filename)
+    } else if (grepl("danske", filename)) {
+      read_danske(filename)
+    }
+  }
+  file_list = list.files(dir_bank, full.names = TRUE, pattern = "*.csv$")
   map_df(file_list, read_data) %>%
     arrange(date) %>%
     mutate(is_income = amount > 0,
            is_internal_payment = str_to_lower(payer) %in% c("rafael savvides", "savvides rafael") & str_to_lower(receiver) %in% c("rafael savvides", "savvides rafael"))
 }
 
-#' Read csv into a data frame
-#'
-#' @param filename
-#'
-#' @return
-#' @export
-#'
-#' @examples
-read_data <- function(filename, dir_file = readLines("data/dir_bank.txt")) {
-  #filename = "spankki_20180101_20181231.csv"
-  filename = paste0(dir_file, "\\", filename)
-  if (grepl("spankki", filename)) {
-    data = read_spankki(filename)
-  } else if (grepl("danske", filename)) {
-    data = read_danske(filename)
-  }
-  data
-}
-
-
 #' Read and preprocess S-pankki csv to data frame
 #'
-#' @param filename location of csv file
+#' @param filename csv file
 #'
 #' @return data frame
 #' @export
@@ -95,84 +73,17 @@ read_danske <- function(filename) {
          receiver = if_else(amount < 0, as.character(receiver_payer), "Rafael Savvides"),
          date = day_month_year2date(date)) %>%
     select(date, receiver, payer, amount) %>%
-    mutate(receiver = str_replace(receiver, " +\\)\\)\\)\\)", ""))
+    mutate(receiver = str_replace(receiver, " +\\)\\)\\)\\)", ""),
+           amount = as.numeric(amount))
 }
 
-#' Title
-#'
-#' @param data
-#'
-#' @return
-#' @export
-#'
-#' @examples
-summarise_month <- function(data) {
-  data %>%
-    group_by(month = month(date_paid)) %>%
-    summarise(total = sum(amount))
-}
 
-#' Title
-#'
-#' @param data
-#' @param Year
-#'
-#' @return
-#' @export
-#'
-#' @examples
-filter_year <- function(data, Year) {
-  data %>% filter(year(date) == Year)
-}
-
-#' Add a category column to data
-#'
-#' @param data data frame
-#' @param categories list of character vectors
-#'
-#' @return
-add_category_column <- function(data, categories = read_categories()) {
-  data %>%
-    mutate(message_ = if_else(str_detect(message, "[a-zA-Z]"), message, ""),
-           receiver_message = paste(receiver, message_),
-           category = which_category(str_to_lower(receiver_message), categories)) %>%
-    select(-message_, receiver_message)
-}
-
-#' Read categories.rds
+#' Read categories
 #'
 #' @param filename
 #'
 #' @return list of character vectors
-read_categories <- function(filename = "data/categories.rds") {
-  readRDS(file = filename)
+read_categories <- function(filename) {
+  readRDS(filename)
 }
 
-#' Category of s
-#'
-#' @param s character vector
-#' @param categories list of character vectors
-#'
-#' @return names(categories) that are contained in s
-which_category <- function(s, categories) {
-  res = character(length(s))
-  for (i in seq_along(res)) {
-    tmp = names(categories)[vapply(categories, function(vec) any(str_detect(string = s[i], vec)), logical(1))]
-    if (length(tmp) < 1) tmp = "None"
-    res[i] = tmp
-  }
-  res
-}
-
-#' Filter expenses
-#'
-#' @param data
-#'
-#' @return
-#' @export
-filter_expenses <- function(data) {
-  data %>%
-    filter(is_income == FALSE,
-           is_internal_payment == FALSE) %>%
-    mutate(amount = -amount)
-}

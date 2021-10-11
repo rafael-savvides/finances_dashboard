@@ -5,7 +5,7 @@
 #' @export
 #'
 #' @examples
-update_categories <- function(data = read_spankki_all(), categories = readRDS(file="data/categories.rds"), categories_new = NULL) {
+update_categories <- function(data, categories, categories_new = NULL) {
   if (!is.null(categories_new)) {
     categories = append_new_labels(categories, categories_new)
     return(invisible(categories))
