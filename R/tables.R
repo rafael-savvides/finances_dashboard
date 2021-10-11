@@ -13,7 +13,7 @@
 #' @examples
 table_expenses <- function(data, date_start, date_end, categ) {
   data %>%
-    filter_expenses %>%
+    keep_only_expenses() %>%
     select(date, amount, receiver, message, category) %>%
     filter(between(date, date_start, date_end)) %>%
     filter(category %in% categ)
@@ -86,6 +86,9 @@ table_search <- function(..., search_term) {
   }
   search_term = parse_search_term(search_term)
   table_expenses(...) %>%
-    filter(str_detect_vec(str_to_lower(receiver), str_to_lower(search_term)) | str_detect_vec(str_to_lower(message), str_to_lower(search_term))) %>%
+    filter(str_detect_vec(
+      str_to_lower(receiver),
+      str_to_lower(search_term)) | str_detect_vec(str_to_lower(message),
+                                                  str_to_lower(search_term))) %>%
     mutate(date = format(date,'%Y-%m-%d'))
 }

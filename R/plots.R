@@ -36,14 +36,13 @@ plot_time_series <- function(data) {
 #' @examples
 plot_daily_expenses <- function(data, show_categories = F) {
   plt = data %>%
-    filter_expenses %>%
+    keep_only_expenses() %>%
     plot_time_series()
   if (show_categories) {
     plt + geom_col(aes(date, amount, fill=category), position="dodge")
   } else {
     plt + geom_col(aes(date, amount))
   }
-  plt
   #TODO have consistent colors for categories. Order them according to amount.
 }
 
@@ -65,7 +64,7 @@ plot_weekends <- function(data, ...) {
 plot_month_year <- function(data, show_categ=F) {
   #TODO replace with table_monthly
   plt = data %>%
-    filter_expenses %>%
+    keep_only_expenses() %>%
     group_by(year = year(date), month = month(date), category) %>%
     summarise(total = sum(amount)) %>%
     plot_time_series() +
@@ -90,7 +89,7 @@ plot_month_year <- function(data, show_categ=F) {
 #' @examples
 plot_week_year <- function(data) {
   data %>%
-    filter_expenses %>%
+    keep_only_expenses() %>%
     group_by(week = week(date), year = year(date)) %>%
     summarise(total = sum(amount)) %>%
     plot_time_series() +
@@ -112,7 +111,7 @@ plot_week_year <- function(data) {
 plot_weekdays <- function(data) {
   #TODO change color palette. Encode season info (e.g. summer yellowish, winter blueish).
   data %>%
-    filter_expenses %>%
+    keep_only_expenses() %>%
     group_by(year = year(date), month = month(date), weekday = weekdays(date)) %>%
     summarise(total = sum(amount)) %>%
     ungroup %>%

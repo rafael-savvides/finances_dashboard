@@ -74,9 +74,10 @@ which_category <- function(s, categories) {
 #'
 #' @return
 #' @export
-filter_expenses <- function(data) {
+keep_only_expenses <- function(data) {
   data %>%
     filter(is_income == FALSE,
            is_internal_payment == FALSE) %>%
-    mutate(amount = -amount)
+    mutate(amount = -amount) %>%
+    select(-is_income, -is_internal_payment)
 }
