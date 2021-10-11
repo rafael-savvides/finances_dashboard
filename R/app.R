@@ -1,15 +1,17 @@
 library(shiny)
 library(plotly)
 require(shinythemes)
-source("R/load_data.R")
-source("R/plots.R")
-source("R/tables.R")
-source("R/utils.R")
-data = read_all()
-categories = read_categories()
+source("load_data.R")
+source("tables.R")
+source("utils.R")
+data = read_all(readLines("../data/dir_bank.txt"))
+categories = read_categories("../data/categories.rds")
+source("plots.R")
 data = add_category_column(data, categories)
 
-time_periods = expand.grid(mon = month.abb[unique(month(data$date))], yr = unique(year(data$date))) %>%
+time_periods = expand.grid(
+  mon = month.abb[unique(month(data$date))],
+  yr = unique(year(data$date))) %>%
   mutate(mon_yr = paste(mon, yr)) %>%
   pull(mon_yr)
 
