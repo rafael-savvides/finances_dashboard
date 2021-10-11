@@ -19,21 +19,6 @@ table_expenses <- function(data, date_start, date_end, categ) {
     filter(category %in% categ)
 }
 
-#' Table of top n purchases
-#'
-#' Returns a data frame of top purchases in a given time frame and in given categories
-#'
-#' @param n_top integer
-#' @param ... see [table_expenses]
-#' @return data frame
-#' @md
-table_top_purchases <- function(..., n_top) {
-  table_expenses(...) %>%
-    top_n(n = n_top, amount) %>%
-    arrange(-amount) %>%
-    mutate(date = format(date,'%Y-%m-%d'))
-}
-
 #' Summary table
 #'
 #' For year and month show income, expense, difference, running total.
@@ -66,29 +51,4 @@ table_aggregate <- function(data, group_categ = F) {
   } else {
     dat
   }
-}
-
-#' Search results
-#'
-#' @param search_term
-#' @param ... see [table_expenses]
-#'
-#' @return
-#' @export
-#'
-#' @md
-table_search <- function(..., search_term) {
-  parse_search_term <- function(s) {
-    s = unlist(str_split(s, " ?\\| ?"))
-    if (length(s) > 1)
-      s = s[s != ""]
-    s
-  }
-  search_term = parse_search_term(search_term)
-  table_expenses(...) %>%
-    filter(str_detect_vec(
-      str_to_lower(receiver),
-      str_to_lower(search_term)) | str_detect_vec(str_to_lower(message),
-                                                  str_to_lower(search_term))) %>%
-    mutate(date = format(date,'%Y-%m-%d'))
 }
