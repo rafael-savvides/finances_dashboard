@@ -2,6 +2,8 @@ library(dplyr)
 library(stringr)
 library(purrr)
 library(lubridate)
+library(jsonlite)
+
 source("utils.R")
 
 #' Read all csv files in a directory
@@ -84,6 +86,9 @@ read_danske <- function(filename) {
 #'
 #' @return list of character vectors
 read_categories <- function(filename) {
-  readRDS(filename)
+  x = read_json(filename)
+  x = lapply(x, unlist)
+  x[sapply(x, is.null)] = ""
+  x
 }
 

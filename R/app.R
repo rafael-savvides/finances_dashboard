@@ -6,7 +6,7 @@ source("tables.R")
 source("utils.R")
 source("plots.R")
 data = read_all(readLines("../data/dir_bank.txt"))
-categories = read_categories("../data/categories.rds") #TODO Save as json.
+categories = read_categories("../data/categories.json")
 data = add_category_column(data, categories)
 
 category_names = as.list(c(names(categories), "None"))
