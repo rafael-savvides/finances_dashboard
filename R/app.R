@@ -20,7 +20,7 @@ ui <- fluidPage(theme = shinytheme("flatly"),
   navbarPage("Finances",
              tabPanel("Daily",
                       verticalLayout(
-                        plotOutput("plot_ts"),
+                        plotlyOutput("plot_ts"),
                         hr(),
                         fluidRow(
                           column(width=4,
@@ -72,11 +72,12 @@ ui <- fluidPage(theme = shinytheme("flatly"),
 
 
 server <- function(input, output, session) {
-  output$plot_ts <- renderPlot({
+  output$plot_ts <- renderPlotly({
     data %>%
       filter(between(date, input$date_start, input$date_end)) %>%
       filter(category %in% input$categ) %>%
-      plot_daily_expenses(show_categories = input$show_categ)
+      plot_daily_expenses(show_categories = input$show_categ) %>%
+      ggplotly()
   })
 
   output$table_expenses <- renderDataTable({
