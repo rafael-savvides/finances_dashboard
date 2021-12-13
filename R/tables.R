@@ -30,17 +30,17 @@ table_expenses <- function(data, date_start, date_end, categ) {
 #' @export
 #'
 #' @examples
-table_aggregate <- function(data, group_categ = F) {
+table_aggregate <- function(data, group_categ = FALSE) {
   dat = data %>%
     mutate(income = if_else(is_income, amount, 0),
            expenses = if_else(is_income, 0, -amount)) %>%
     group_by(year = year(date), month = month(date))
   if (group_categ)
-    dat = dat %>% group_by(category, add=T)
+    dat = dat %>% group_by(category, .add=TRUE)
   dat = dat %>%
     summarise(income = sum(income),
-              expenses = sum(expenses)) %>%
-    ungroup %>%
+              expenses = sum(expenses),
+              .groups="drop") %>%
     mutate(month = month.abb[month],
            year = as.integer(year),
            diff = income - expenses,

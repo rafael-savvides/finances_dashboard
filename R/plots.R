@@ -1,11 +1,8 @@
+source("utils.R")
 require(ggplot2)
 theme_set(theme_light())
 
-clr_categ = setNames(RColorBrewer::brewer.pal(n = 9, "Set1"),
-                     c("Supermarket", "Food", "Out", "Service", "Product", "Rent", "None"))
-clr_month = setNames(colorRampPalette(RColorBrewer::brewer.pal(n = 9, "Blues")[3:9])(12), month.abb)
-clr_year = setNames(colorRampPalette(RColorBrewer::brewer.pal(n = 9, "Blues")[3:9])(10), 2017:2026)
-clr_fill = c(clr_categ, clr_month, clr_year)
+clr_fill = make_fill_palette(if (exists("bank")) bank else NULL)
 
 #' Template for time series plots
 #'
@@ -19,10 +16,9 @@ gg_time_series <- function(data) {
   #TODO Change default color to match shiny theme (dark blue instead of grey).
   ggplot(data) +
     theme(rect = element_blank()) +
-    scale_x_date() +
     scale_y_continuous(labels = scales::dollar_format(suffix = "eur", prefix = "")) +
     scale_fill_manual(values = clr_fill) +
-    xlab("") + ylab("")
+    labs(x="", y="", fill="")
 }
 
 #' Time series plot of daily expenses
@@ -38,7 +34,8 @@ gg_time_series <- function(data) {
 plot_daily_expenses <- function(data, show_categories = FALSE) {
   fig = data %>%
     keep_only_expenses() %>%
-    gg_time_series()
+    gg_time_series() +
+    scale_x_date()
   if (show_categories) {
     fig + geom_col(aes(date, amount, fill=category), position="stack") +
       theme(legend.position = "bottom")
@@ -57,19 +54,19 @@ plot_daily_expenses <- function(data, show_categories = FALSE) {
 #'
 #' @examples
 plot_month_year <- function(data, show_categ=FALSE) {
-  #TODO replace with table_monthly
   plt = data %>%
     keep_only_expenses() %>%
     group_by(year = year(date), month = month(date), category) %>%
     summarise(total = sum(amount)) %>%
     gg_time_series() +
+    geom_col(aes(month, total, fill = as.factor(year)), position = "dodge") +
     scale_x_continuous(breaks = 1:12, labels = month.abb) +
     theme(panel.grid.major.x = element_blank(),
           panel.grid.minor.x = element_blank(),
-          axis.ticks.x = element_blank()) +
-    labs(fill = "Year") +
-    geom_col(aes(month, total, fill = as.factor(year)), position = "dodge")
+          axis.ticks.x = element_blank(), legend.position = "bottom") +
+    labs(fill = "Year")
   if (show_categ)
     plt + facet_wrap(category~.)
   plt
 }
+
