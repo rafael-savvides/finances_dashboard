@@ -52,3 +52,19 @@ table_aggregate <- function(data, group_categ = FALSE) {
     dat
   }
 }
+
+#' Summary table
+#'
+#' @param data
+#' @param date_start
+#' @param date_end
+#' @param categ
+#'
+#' @return
+#' @export
+#'
+#' @examples
+table_summary = function(data, date_start, date_end, categ) {
+  table_expenses(data, date_start, date_end, categ) |>
+    summarize(total_amount = sum(amount))
+}
