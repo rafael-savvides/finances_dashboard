@@ -50,7 +50,7 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                  ))
         ),
         hr(),
-        textOutput("table_summary"),
+        verbatimTextOutput("print_summary"),
         hr(),
         dataTableOutput("table_expenses")
       )
@@ -97,12 +97,13 @@ server <- function(input, output, session) {
       mutate(category = replace_na_category(category))
   })
 
-  output$table_summary = renderPrint({
-    table_summary(
+  output$print_summary = renderPrint({
+    print_summary(
       data = bank,
       date_start = input$date_start,
       date_end = input$date_end,
-      categ = input$categ)
+      categ = input$categ) |>
+      cat()
   })
 
   output$plot_monthly <- renderPlot({

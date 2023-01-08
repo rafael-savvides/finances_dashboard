@@ -2,10 +2,10 @@
 #'
 #' For a given time period (date_start to date_end) and for given categories
 #'
-#' @param data
-#' @param date_start
-#' @param date_end
-#' @param categ
+#' @param data data frame.
+#' @param date_start Date.
+#' @param date_end Date.
+#' @param categ character vector.
 #'
 #' @return
 #' @export
@@ -53,18 +53,24 @@ table_aggregate <- function(data, group_categ = FALSE) {
   }
 }
 
-#' Summary table
+#' Print summary
 #'
-#' @param data
-#' @param date_start
-#' @param date_end
-#' @param categ
+#' @param data data frame.
+#' @param date_start Date.
+#' @param date_end Date.
+#' @param categ character vector.
 #'
-#' @return
+#' @return character
 #' @export
 #'
 #' @examples
-table_summary = function(data, date_start, date_end, categ) {
-  table_expenses(data, date_start, date_end, categ) |>
-    summarize(total_amount = sum(amount))
+print_summary = function(data, date_start, date_end, categ) {
+  df = table_expenses(data, date_start, date_end, categ)
+  sprintf(
+    paste(sep="\n",
+          "%s to %s: ",
+          "- Total: %.2fe",
+          "- Transactions: %d"),
+    date_start, date_end, sum(df$amount), nrow(df)
+  )
 }
