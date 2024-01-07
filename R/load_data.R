@@ -54,8 +54,9 @@ read_spankki <- function(filename) {
   book %>%
     mutate(amount = make_numeric(amount),
            date_reported = day_month_year2date(date_reported),
-           date = day_month_year2date(date_paid)) %>%
-    dplyr::select(date, amount, type, payer, receiver, message)
+           date = day_month_year2date(date_paid),
+           filename=basename(filename)) %>%
+    dplyr::select(date, amount, type, payer, receiver, receiver_iban, message, filename)
 }
 
 #' Read Danske bank data

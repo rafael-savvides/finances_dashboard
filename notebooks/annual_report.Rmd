@@ -1,0 +1,70 @@
+---
+title: "R Notebook"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r}
+suppressPackageStartupMessages({
+  library(shiny)
+  library(plotly)
+  library(tidyr)
+  require(shinythemes)
+  source("../R/load_data.R", chdir = TRUE)
+  source("../R/tables.R", chdir = TRUE)
+  source("../R/plots.R", chdir = TRUE)
+  source("../R/utils.R", chdir = TRUE)
+})
+bank = read_all(readLines("../data/dir_bank.txt")) |> 
+  as_tibble() |> 
+  distinct()
+categories = read_categories("../data/categories.json")
+bank = add_category_column(bank, categories)
+```
+
+
+# Income
+
+```{r}
+income = bank |> 
+  filter(type != "OMA TILISIIRTO", 
+         str_starts(receiver_iban, "FI27"), 
+         !str_detect(filename, "savings")) |> 
+  select(date, payer, amount, message)
+```
+
+```{r}
+income |> 
+  arrange(date) |> 
+  group_by(date) |> 
+  summarize(amount = sum(amount)) |> 
+  group_by(year(date)) |> 
+  mutate(amount_total = cumsum(amount)) |> 
+  ggplot() + 
+  geom_line(aes(date, amount_total)) + 
+  facet_wrap(~year(date), scales="free_x") + 
+  labs(x="", y="Euros", title="Cumulative income")
+```
+
+
+# Savings
+
+Could annotate large dips.
+
+```{r}
+bank |> 
+  filter(str_detect(filename, "savings")) |> 
+  select(date, amount) |> 
+  group_by(date) |> 
+  summarize(amount = sum(amount)) |> 
+  complete(date=seq.Date(min(date), max(date), by=1), fill=list(amount=0)) |> 
+  arrange(date) |> 
+  group_by(year(date)) |> 
+  mutate(amount_total = cumsum(amount)) |> 
+  ggplot() + 
+  geom_line(aes(date, amount_total)) + 
+  facet_wrap(~year(date), scales="free_x") + 
+  labs(x="", y="Euros", title="Cumulative savings (per year)")
+```
+
