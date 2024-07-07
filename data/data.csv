@@ -1,0 +1,14 @@
+date,amount,receiver,payer
+2024-05-31,100,me,salary
+2024-05-30,-50,thomann,me
+2024-05-29,-10,kebab,me
+2024-05-29,-10,bar,me
+2024-05-29,-30,k-market,me
+2024-05-28,-10,market,me
+2024-05-27,-20,s-market,me
+2024-05-25,-20,store,me
+2023-05-31,50,me,salary
+2023-05-22,-1,kebab,me
+2023-05-03,-3,k-market,me
+2023-05-01,-2,store,me
+2023-04-01,200,me,bonus

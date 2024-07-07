@@ -24,8 +24,10 @@ table_expenses <- function(data, date_start, date_end, categ) {
   data |>
     keep_only_expenses() |>
     select(date, amount, receiver, message, category) |>
-    filter(between(date, date_start, date_end)) |>
-    filter(category %in% categ)
+    filter(
+      between(date, date_start, date_end),
+      category %in% categ
+    )
 }
 
 #' Summary table

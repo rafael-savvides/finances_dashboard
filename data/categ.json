@@ -1,0 +1,6 @@
+{
+    "market": ["market", "store"],
+    "rent": ["rent"],
+    "product": ["thomann"],
+    "out": ["kebab", "bar"]
+}
