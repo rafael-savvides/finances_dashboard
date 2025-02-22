@@ -41,7 +41,7 @@ table_expenses <- function(data, date_start, date_end, categ) {
 #' @export
 #'
 #' @examples
-table_aggregate <- function(data, group_categ = FALSE) {
+table_monthly <- function(data, group_categ = FALSE) {
   dat = data |>
     mutate(
       income = if_else(amount > 0, amount, 0),
@@ -52,6 +52,7 @@ table_aggregate <- function(data, group_categ = FALSE) {
     dat = dat |> group_by(category, .add = TRUE)
   }
   dat = dat |>
+    filter(tolower(payer) != tolower(receiver)) |>
     summarise(
       income = sum(income),
       expenses = sum(expenses),

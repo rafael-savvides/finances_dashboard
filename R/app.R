@@ -133,7 +133,7 @@ server <- function(input, output, session) {
     {
       bank |>
         filter(category %in% input$categ_monthly) |>
-        table_aggregate(group_categ = input$show_categ_monthly)
+        table_monthly(group_categ = input$show_categ_monthly)
     }
   )
 }
