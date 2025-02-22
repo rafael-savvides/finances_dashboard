@@ -32,6 +32,7 @@ add_category_column <- function(data, categories) {
 #' Assign categories to strings
 #'
 #' If x[i] contains a term from `categories[j]`, then it belongs to category `names(categories)[j]`.
+#' Case insensitive.
 #'
 #' @param x character vector
 #' @param categories list of character vectors.
@@ -40,7 +41,7 @@ add_category_column <- function(data, categories) {
 which_category <- function(x, categories, default = DEFAULT_CATEGORY) {
   categ_x = character(length(x))
   for (i in seq_along(x)) {
-    is_in_xi = vapply(categories, \(terms) any(str_detect(x[i], terms) & terms != ""), logical(1))
+    is_in_xi = vapply(categories, \(terms) any(str_detect(x[i], str_to_lower(terms)) & terms != ""), logical(1))
     categ_xi = names(categories)[is_in_xi]
     if (length(categ_xi) == 0) {
       categ_x[i] = default
