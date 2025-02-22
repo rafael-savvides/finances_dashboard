@@ -68,7 +68,7 @@ ui <- fluidPage(
     tabPanel(
       "Compare months per year",
       verticalLayout(
-        plotOutput("plot_monthly"),
+        plotlyOutput("plot_monthly"),
         hr(),
         fixedRow(
           column(
@@ -82,7 +82,7 @@ ui <- fluidPage(
             )
           ),
           hr(),
-          tableOutput("table_monthly")
+          dataTableOutput("table_monthly")
         )
       )
     )
@@ -121,20 +121,20 @@ server <- function(input, output, session) {
       cat()
   })
 
-  output$plot_monthly <- renderPlot({
-    bank |>
+  output$plot_monthly <- renderPlotly({
+    fig = bank |>
       filter(category %in% input$categ_monthly) |>
       plot_month_year() +
       scale_fill_manual(values = fill_palette)
+    ggplotly(fig)
   })
 
-  output$table_monthly <- renderTable(
+  output$table_monthly <- renderDataTable(
     {
       bank |>
         filter(category %in% input$categ_monthly) |>
         table_aggregate(group_categ = input$show_categ_monthly)
-    },
-    digits = 0
+    }
   )
 }
 
