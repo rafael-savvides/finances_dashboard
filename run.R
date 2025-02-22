@@ -11,4 +11,4 @@ shinyOptions(
     path_to_categories = path_to_categories
 )
 
-runApp("R/app.R", launch.browser = TRUE)
+runApp("R/app.R", launch.browser = TRUE, port=3030)
